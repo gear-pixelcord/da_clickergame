@@ -3,11 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <title>Clicker Game</title>
-  
-  <!-- Prevent zoom on tap -->
+
+  <!-- Prevent mobile zoom on tap -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
+    /* Remove blue tap highlight on mobile */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -28,9 +33,15 @@
       margin: 10px;
     }
 
+    button {
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
     #clickButton {
       padding: 20px 40px;
-      font-size: 2rem;           /* Make sure mobile browsers don't zoom */
+      font-size: 2rem;
       cursor: pointer;
       background-color: #4CAF50;
       color: white;
@@ -38,6 +49,8 @@
       border-radius: 10px;
       margin: 10px;
       transition: transform 0.2s ease, background-color 0.3s;
+      position: relative;
+      z-index: 10;
     }
 
     #clickButton:hover {
@@ -118,6 +131,7 @@
       background-color: #2196F3;
       display: none;
       z-index: 1000;
+      pointer-events: none;
     }
 
     @keyframes screen-shake {
@@ -211,7 +225,9 @@
   <audio id="bgMusic" src="lofi.mp3" loop></audio>
 
   <script>
-    // Leave your JS exactly the same here – no changes needed.
+    // YOUR ENTIRE EXISTING SCRIPT GOES HERE
+    // (paste your latest working script here without changing anything else)
   </script>
 </body>
 </html>
+
