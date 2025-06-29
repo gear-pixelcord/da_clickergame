@@ -3,24 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <title>Clicker Game</title>
-
-  <!-- Prevent mobile zoom on tap -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
   <style>
-    /* Remove blue tap highlight on mobile */
     * {
       -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
     }
 
     html, body {
       margin: 0;
       padding: 0;
-      touch-action: manipulation;
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
       text-align: center;
       overflow-x: hidden;
+      touch-action: manipulation;
     }
 
     h1 {
@@ -37,12 +35,12 @@
       -webkit-user-select: none;
       user-select: none;
       touch-action: manipulation;
+      cursor: pointer;
     }
 
     #clickButton {
       padding: 20px 40px;
       font-size: 2rem;
-      cursor: pointer;
       background-color: #4CAF50;
       color: white;
       border: none;
@@ -76,7 +74,6 @@
       color: white;
       font-size: 1.5rem;
       margin: 5px;
-      cursor: pointer;
       box-shadow: 0 0 5px #FF9800;
       transition: transform 0.2s ease, background-color 0.3s, box-shadow 0.3s;
     }
@@ -98,9 +95,9 @@
       color: white;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
       transition: transform 0.2s ease, background-color 0.3s;
+      z-index: 20;
     }
 
     #resetButton {
@@ -131,7 +128,13 @@
       background-color: #2196F3;
       display: none;
       z-index: 1000;
-      pointer-events: none;
+      pointer-events: none !important;
+    }
+
+    .popcorn,
+    .crit-message {
+      pointer-events: none !important;
+      z-index: 9999;
     }
 
     @keyframes screen-shake {
@@ -155,7 +158,6 @@
       color: red;
       font-weight: bold;
       opacity: 1;
-      pointer-events: none;
       animation: fadeOut 1s forwards;
     }
 
@@ -169,9 +171,7 @@
       font-size: 2rem;
       color: green;
       font-weight: bold;
-      pointer-events: none;
       animation: popAndDrop 2s forwards;
-      z-index: 9999;
     }
 
     @keyframes popAndDrop {
@@ -225,9 +225,255 @@
   <audio id="bgMusic" src="lofi.mp3" loop></audio>
 
   <script>
-    // YOUR ENTIRE EXISTING SCRIPT GOES HERE
-    // (paste your latest working script here without changing anything else)
+    let score = 0;
+    let clickPower = 1;
+    let critClickUnlocked = false;
+    let musicPlaying = false;
+
+    let powerUp2Bought = false;
+    let powerUp4Bought = false;
+    let ballPowerUpBought = false;
+
+    let ballVisible = false;
+    let ballX = 100;
+    let ballY = 100;
+    let ballVX = 3;
+    let ballVY = 3;
+    let ballSize = 40;
+
+    const scoreDisplay = document.getElementById('score');
+    const clickButton = document.getElementById('clickButton');
+    const powerUpButton = document.getElementById('powerUpButton');
+    const powerUpButton2 = document.getElementById('powerUpButton2');
+    const critClickButton = document.getElementById('critClickButton');
+    const ballPowerUpButton = document.getElementById('ballPowerUpButton');
+    const resetButton = document.getElementById('resetButton');
+    const musicButton = document.getElementById('musicButton');
+    const clickSound = document.getElementById('clickSound');
+    const bgMusic = document.getElementById('bgMusic');
+    const bouncingBall = document.getElementById('bouncingBall');
+
+    // Mobile detection
+    function isMobile() {
+      return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    if (isMobile()) {
+      clickButton.textContent = "Tap me!";
+      ballVX = 2;
+      ballVY = 2;
+      ballSize = 30;
+    }
+
+    bouncingBall.style.width = ballSize + "px";
+    bouncingBall.style.height = ballSize + "px";
+
+    // Load saved data
+    if (localStorage.getItem('clickerScore')) {
+      score = parseInt(localStorage.getItem('clickerScore'), 10);
+    }
+    if (localStorage.getItem('clickerPower')) {
+      clickPower = parseInt(localStorage.getItem('clickerPower'), 10);
+    }
+    if (localStorage.getItem('critClickUnlocked') === 'true') {
+      critClickUnlocked = true;
+    }
+    if (localStorage.getItem('powerUp2Bought') === 'true') {
+      powerUp2Bought = true;
+    }
+    if (localStorage.getItem('powerUp4Bought') === 'true') {
+      powerUp4Bought = true;
+    }
+    if (localStorage.getItem('ballPowerUpBought') === 'true') {
+      ballPowerUpBought = true;
+    }
+
+    updateScore();
+
+    if (!powerUp2Bought && score >= 20) powerUpButton.style.display = "inline-block";
+    if (!powerUp4Bought && score >= 50) powerUpButton2.style.display = "inline-block";
+    if (!critClickUnlocked && score >= 120) critClickButton.style.display = "inline-block";
+    if (!ballPowerUpBought && score >= 469) ballPowerUpButton.style.display = "inline-block";
+
+    if (powerUp2Bought) powerUpButton.style.display = "none";
+    if (powerUp4Bought) powerUpButton2.style.display = "none";
+    if (critClickUnlocked) critClickButton.style.display = "none";
+    if (ballPowerUpBought) {
+      ballPowerUpButton.style.display = "none";
+      bouncingBall.style.display = "block";
+      startBall();
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = "Score: " + score;
+      localStorage.setItem('clickerScore', score);
+    }
+
+    function saveClickPower() {
+      localStorage.setItem('clickerPower', clickPower);
+    }
+
+    clickButton.addEventListener('click', () => {
+      let points = clickPower;
+
+      if (critClickUnlocked && Math.random() < 0.05) {
+        points += 14;
+        showCritEffect();
+        shakeScreen();
+      }
+
+      score += points;
+      updateScore();
+
+      spawnPopcorn(points);
+
+      clickSound.currentTime = 0;
+      clickSound.play();
+
+      if (!powerUp2Bought && score >= 20) powerUpButton.style.display = "inline-block";
+      if (!powerUp4Bought && score >= 50) powerUpButton2.style.display = "inline-block";
+      if (!critClickUnlocked && score >= 120) critClickButton.style.display = "inline-block";
+      if (!ballPowerUpBought && score >= 469) ballPowerUpButton.style.display = "inline-block";
+    });
+
+    powerUpButton.addEventListener('click', () => {
+      clickPower = 2;
+      powerUp2Bought = true;
+      localStorage.setItem('powerUp2Bought', 'true');
+      saveClickPower();
+      powerUpButton.style.display = "none";
+    });
+
+    powerUpButton2.addEventListener('click', () => {
+      clickPower = 4;
+      powerUp4Bought = true;
+      localStorage.setItem('powerUp4Bought', 'true');
+      saveClickPower();
+      powerUpButton2.style.display = "none";
+    });
+
+    critClickButton.addEventListener('click', () => {
+      critClickUnlocked = true;
+      localStorage.setItem('critClickUnlocked', 'true');
+      critClickButton.style.display = "none";
+    });
+
+    ballPowerUpButton.addEventListener('click', () => {
+      ballPowerUpBought = true;
+      localStorage.setItem('ballPowerUpBought', 'true');
+      ballPowerUpButton.style.display = "none";
+      bouncingBall.style.display = "block";
+      startBall();
+    });
+
+    resetButton.addEventListener('click', () => {
+      if (confirm("Are you sure you want to reset your progress?")) {
+        localStorage.clear();
+        location.reload();
+      }
+    });
+
+    musicButton.addEventListener('click', () => {
+      if (musicPlaying) {
+        bgMusic.pause();
+        musicButton.textContent = "Play Music";
+        musicPlaying = false;
+      } else {
+        bgMusic.play();
+        musicButton.textContent = "Pause Music";
+        musicPlaying = true;
+      }
+    });
+
+    function showCritEffect() {
+      const critMsg = document.createElement('div');
+      critMsg.textContent = "+14 CRIT!";
+      critMsg.className = "crit-message";
+      critMsg.style.pointerEvents = "none";
+      document.body.appendChild(critMsg);
+      setTimeout(() => {
+        document.body.removeChild(critMsg);
+      }, 1000);
+    }
+
+    function shakeScreen() {
+      document.body.classList.add('shake');
+      setTimeout(() => {
+        document.body.classList.remove('shake');
+      }, 250);
+    }
+
+    function spawnPopcorn(points) {
+      const pop = document.createElement('div');
+      pop.textContent = "+" + points;
+      pop.className = "popcorn";
+      pop.style.pointerEvents = "none";
+
+      const scoreRect = scoreDisplay.getBoundingClientRect();
+      const offsetX = (Math.random() * 60) - 30;
+
+      pop.style.left = (scoreRect.left + scoreRect.width / 2 + offsetX) + "px";
+      pop.style.top = (scoreRect.top + scoreRect.height / 2) + "px";
+
+      document.body.appendChild(pop);
+      setTimeout(() => {
+        document.body.removeChild(pop);
+      }, 2000);
+    }
+
+    function startBall() {
+      ballVisible = true;
+      ballX = 100;
+      ballY = 100;
+      requestAnimationFrame(moveBall);
+    }
+
+    function moveBall() {
+      if (!ballVisible) return;
+
+      ballX += ballVX;
+      ballY += ballVY;
+
+      let hitVertical = false;
+      let hitHorizontal = false;
+
+      if (ballX <= 0 || ballX + ballSize >= window.innerWidth) {
+        ballVX *= -1;
+        hitVertical = true;
+      }
+      if (ballY <= 0 || ballY + ballSize >= window.innerHeight) {
+        ballVY *= -1;
+        hitHorizontal = true;
+      }
+
+      if (hitVertical && hitHorizontal) {
+        score += 15;
+        updateScore();
+        showCornerEffect("+15!");
+      } else if (hitVertical || hitHorizontal) {
+        score += 12;
+        updateScore();
+        showCornerEffect("+12!");
+      }
+
+      bouncingBall.style.left = ballX + "px";
+      bouncingBall.style.top = ballY + "px";
+
+      requestAnimationFrame(moveBall);
+    }
+
+    function showCornerEffect(text) {
+      const msg = document.createElement('div');
+      msg.textContent = text;
+      msg.className = "crit-message";
+      msg.style.pointerEvents = "none";
+      document.body.appendChild(msg);
+      setTimeout(() => {
+        document.body.removeChild(msg);
+      }, 1000);
+    }
   </script>
 </body>
 </html>
+
 
