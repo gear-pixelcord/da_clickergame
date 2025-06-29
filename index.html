@@ -4,20 +4,22 @@
   <meta charset="UTF-8" />
   <title>Clicker Game</title>
   
-  <!-- Prevent mobile zoom on tap -->
+  <!-- Prevent zoom on tap -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  
+
   <style>
     html, body {
+      margin: 0;
+      padding: 0;
       touch-action: manipulation;
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 50px;
       background-color: #f4f4f4;
+      text-align: center;
       overflow-x: hidden;
     }
 
     h1 {
+      margin-top: 50px;
       font-size: 3rem;
     }
 
@@ -28,7 +30,7 @@
 
     #clickButton {
       padding: 20px 40px;
-      font-size: 2rem;
+      font-size: 2rem;           /* Make sure mobile browsers don't zoom */
       cursor: pointer;
       background-color: #4CAF50;
       color: white;
@@ -59,7 +61,7 @@
       border: none;
       background-color: #FF9800;
       color: white;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       margin: 5px;
       cursor: pointer;
       box-shadow: 0 0 5px #FF9800;
@@ -76,19 +78,22 @@
       transform: scale(0.9);
     }
 
-    #resetButton {
+    #resetButton, #musicButton {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
       padding: 12px 24px;
       font-size: 1rem;
-      background-color: #f44336;
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
       transition: transform 0.2s ease, background-color 0.3s;
+    }
+
+    #resetButton {
+      bottom: 20px;
+      right: 20px;
+      background-color: #f44336;
     }
 
     #resetButton:hover {
@@ -97,18 +102,9 @@
     }
 
     #musicButton {
-      position: fixed;
       bottom: 20px;
       left: 20px;
-      padding: 12px 24px;
-      font-size: 1rem;
       background-color: #3F51B5;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-      transition: transform 0.2s ease, background-color 0.3s;
     }
 
     #musicButton:hover {
@@ -173,23 +169,23 @@
 
     @media (max-width: 600px) {
       h1 {
-        font-size: 2rem;
+        font-size: 2.2rem;
       }
       #score {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
       }
       #clickButton {
-        padding: 16px 32px;
-        font-size: 2rem;
+        padding: 18px 36px;
+        font-size: 2.2rem;
       }
       .power-up-btn {
         width: 40px;
         height: 40px;
-        font-size: 1rem;
+        font-size: 1.2rem;
       }
       #resetButton, #musicButton {
         padding: 10px 20px;
-        font-size: 0.9rem;
+        font-size: 1rem;
       }
     }
   </style>
@@ -198,7 +194,7 @@
   <h1>Clicker Game</h1>
   <div id="score">Score: 0</div>
   <button id="clickButton">Click me!</button>
-  
+
   <div class="power-ups">
     <button id="powerUpButton" class="power-up-btn">2</button>
     <button id="powerUpButton2" class="power-up-btn">4</button>
@@ -214,10 +210,8 @@
   <audio id="clickSound" src="click.wav"></audio>
   <audio id="bgMusic" src="lofi.mp3" loop></audio>
 
-  <!-- Your JavaScript remains exactly the same here. Don't change it! -->
   <script>
-    // ... Your entire <script> block from your original remains unchanged ...
+    // Leave your JS exactly the same here – no changes needed.
   </script>
 </body>
 </html>
-
